@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>AI সোশ্যাল মিডিয়া পোস্ট জেনারেটর</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f3f3f3;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #008cba;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .output {
+      margin-top: 20px;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>AI সোশ্যাল মিডিয়া পোস্ট জেনারেটর</h2>
+    <textarea id="userInput" placeholder="যেমনঃ ঈদ অফার নিয়ে একটি পোস্ট তৈরি করো"></textarea>
+    <button onclick="generatePost()">জেনারেট করো</button>
+
+    <div class="output" id="outputSection">
+      <h3>জেনারেটেড পোস্ট:</h3>
+      <p id="postText"></p>
+      <h3>জেনারেটেড ইমেজ:</h3>
+      <img id="postImage" src="" alt="Generated image">
+    </div>
+  </div>
+
+  <script>
+    const openai_api_key = "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"; // এখানে আপনার API key বসান
+
+    async function generatePost() {
+      const input = document.getElementById("userInput").value;
+      if (!input) return alert("দয়া করে একটি টপিক লিখুন।");
+
+      document.getElementById("postText").innerText = "লোড হচ্ছে...";
+      document.getElementById("postImage").src = "";
+
+      try {
+        // Text generation
+        const chatResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${openai_api_key}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: `বাংলায় একটি ফেসবুক পোস্ট তৈরি করো: ${input}` }]
+          })
+        });
+
+        const chatData = await chatResponse.json();
+        const postText = chatData.choices[0].message.content;
+        document.getElementById("postText").innerText = postText;
+
+        // Image generation
+        const imageResponse = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${openai_api_key}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            prompt: input,
+            n: 1,
+            size: "512x512"
+          })
+        });
+
+        const imageData = await imageResponse.json();
+        document.getElementById("postImage").src = imageData.data[0].url;
+
+      } catch (error) {
+        alert("একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
